@@ -1,0 +1,11 @@
+{
+  "name": "moonlight-logger",
+  "version": "1.0.0",
+  "description": "Fancy logger that works both in node and the browser",
+  "main": "src/Logger.ts",
+  "author": "adryd",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.3"
+  }
+}
