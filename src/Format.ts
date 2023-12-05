@@ -15,7 +15,7 @@ export enum TerminalColors {
   BrightMagenta = 65,
   BrightCyan = 66,
   BrightWhite = 67,
-  Reset = 9,
+  Reset = 9
 }
 
 enum TerminalCodes {
@@ -23,7 +23,7 @@ enum TerminalCodes {
   Bold = 1,
   Underline = 4,
   Blink = 5,
-  Inverse = 7,
+  Inverse = 7
 }
 
 const TERMINAL_FOREGROUND_OFFSET = 30;
@@ -49,7 +49,7 @@ export class Color {
   }
 
   getCssColor(background: boolean = false) {
-    if (this.cssColor == null) return null;
+    if (this.cssColor === null) return null;
     return `${background ? "background-" : ""}color: ${this.cssColor};`;
   }
 }
@@ -62,10 +62,10 @@ export const Colors = {
   Magenta: new Color("#881798", TerminalColors.Magenta),
   Red: new Color("#c50f1f", TerminalColors.Red),
   Yellow: new Color("#c19c00", TerminalColors.Yellow),
-  White: new Color("#cccccc", TerminalColors.White),
+  White: new Color("#cccccc", TerminalColors.White)
 };
 
-const RESET_COLOR = new Color(null, TerminalColors.Reset);
+export const RESET_COLOR = new Color(null, TerminalColors.Reset);
 
 type FormatOptions = {
   foreground?: Color | null;
@@ -82,10 +82,8 @@ export class Format {
   background: Color | null = null;
 
   constructor(options?: FormatOptions) {
-    if (options?.foreground)
-      this.foreground = options.foreground;
-    if (options?.background)
-      this.background = options.background;
+    if (options?.foreground) this.foreground = options.foreground;
+    if (options?.background) this.background = options.background;
     if (options?.bold) this.bold = options.bold;
     if (options?.italic) this.italic = options.italic;
   }
@@ -103,12 +101,11 @@ export class Format {
   }
 
   getTerminalEscape() {
-    let modifiers: Array<number | string> = [0];
+    const modifiers: Array<number | string> = [0];
 
     if (this.foreground)
       modifiers.push(this.foreground.getTerminalColor(false));
-    if (this.background)
-      modifiers.push(this.background.getTerminalColor(true));
+    if (this.background) modifiers.push(this.background.getTerminalColor(true));
     if (this.bold) modifiers.push(TerminalCodes.Bold);
 
     return "\x1b[" + modifiers.join(";") + "m";

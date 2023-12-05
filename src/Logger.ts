@@ -1,18 +1,17 @@
-import {Color, Colors, Format, RESET_FORMAT, TerminalColors} from "./Format";
-// import * as util from "node:util";
+import { Colors, Format, RESET_FORMAT } from "./Format";
 
 enum Enviromnent {
   Browser,
-  Node,
+  Node
 }
 
 let environment = Enviromnent.Browser;
 
 // Get the real console.log functions before anything can redefine them *cough discord*
-let nativeLogFuncs = {
+const nativeLogFuncs = {
   log: console.log,
   warn: console.warn,
-  error: console.error,
+  error: console.error
 };
 
 // non blocking writes to stderr
@@ -26,20 +25,14 @@ if (typeof process === "object") {
   util = require("node:util");
 }
 
-type LogLevel = {
-  (...args: any[]): void;
-  logLevel: number;
-  prefix: Array<string | Format>;
-};
-
 export class Logger {
-  [s: string]: any | LogLevel;
   level: number = 3000;
   prefix: Array<string | Format> = [];
 
-  constructor(createDefaultLevels: boolean = true) {}
+  constructor() {}
 
-  _logToNodeTerminal(args: Array<any>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private logToNodeTerminal(args: any[]) {
     const strings: string[] = [];
 
     for (let index = 0; index < args.length; index++) {
@@ -73,7 +66,7 @@ export class Logger {
       }
 
       // Add spaces if we're not at the end of the log, and not immediately preceding a format
-      if (!(args[index + 1] instanceof Format) && args.length != index + 1) {
+      if (!(args[index + 1] instanceof Format) && args.length !== index + 1) {
         string += " ";
       }
       strings.push(string);
@@ -84,11 +77,13 @@ export class Logger {
     writeStderr(strings.join(""));
   }
 
-  _logToConsole(level: number, args: Array<any>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private logToConsole(level: number, args: any[]) {
     let logFunction = nativeLogFuncs.log;
     if (level >= 4000) logFunction = nativeLogFuncs.warn;
     if (level >= 5000) logFunction = nativeLogFuncs.error;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const consoleArgs: any[] = [];
     const consoleTemplate: string[] = [];
     for (let index = 0; index < args.length; index++) {
@@ -111,7 +106,7 @@ export class Logger {
       if (typeof value === "string") template = "%s";
 
       // Add spaces if we're not at the end of the log, and not immediately preceding a format
-      if (!(args[index + 1] instanceof Format) && args.length != index + 1) {
+      if (!(args[index + 1] instanceof Format) && args.length !== index + 1) {
         template += " ";
       }
 
@@ -122,10 +117,11 @@ export class Logger {
     logFunction(consoleTemplate.join(""), ...consoleArgs);
   }
 
-  _logInternal(
+  private logInternal(
     level: number,
     format: Array<Format | string>,
-    args: Array<any>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    args: any[],
     noPrefix?: boolean
   ) {
     if (level < this.level) {
@@ -142,10 +138,10 @@ export class Logger {
     mergedFormats.push(...args);
 
     if (environment === Enviromnent.Node) {
-      this._logToNodeTerminal(mergedFormats);
+      this.logToNodeTerminal(mergedFormats);
       return;
     }
-    this._logToConsole(level, mergedFormats);
+    this.logToConsole(level, mergedFormats);
   }
 
   setLevel(level: number) {
@@ -156,78 +152,84 @@ export class Logger {
     this.prefix = prefix;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   debug(...args: any[]) {
-    this._logInternal(
+    this.logInternal(
       0,
       [
         new Format({
           foreground: Colors.White,
-          background: Colors.Black,
+          background: Colors.Black
         }),
-        "debug",
+        "debug"
       ],
       [...args]
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   verbose(...args: any[]) {
-    this._logInternal(
+    this.logInternal(
       1000,
       [
         new Format({
           foreground: Colors.Blue,
-          background: Colors.Black,
+          background: Colors.Black
         }),
-        "info",
+        "info"
       ],
       [...args]
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   info(...args: any[]) {
-    this._logInternal(
+    this.logInternal(
       3000,
       [
         new Format({
-          foreground: Colors.Green,
+          foreground: Colors.Green
         }),
-        "info",
+        "info"
       ],
       [...args]
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   warn(...args: any[]) {
-    this._logInternal(
+    this.logInternal(
       4000,
       [
         new Format({
           foreground: Colors.Black,
           background: Colors.Yellow,
-          bold: true,
+          bold: true
         }),
-        "WARN",
+        "WARN"
       ],
       [...args]
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error(...args: any[]) {
-    this._logInternal(
+    this.logInternal(
       5000,
       [
         new Format({
           foreground: Colors.Red,
           background: Colors.Black,
-          bold: true,
+          bold: true
         }),
-        "ERR!",
+        "ERR!"
       ],
       [...args]
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   raw(...args: any[]) {
-    this._logInternal(Infinity, args, [], true);
+    this.logInternal(Infinity, args, [], true);
   }
 }
