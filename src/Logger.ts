@@ -1,4 +1,5 @@
-import {Color, Format, RESET_FORMAT, TerminalColors} from "./Format";
+import {Color, Colors, Format, RESET_FORMAT, TerminalColors} from "./Format";
+// import * as util from "node:util";
 
 enum Enviromnent {
   Browser,
@@ -7,7 +8,7 @@ enum Enviromnent {
 
 let environment = Enviromnent.Browser;
 
-// Get the real console.log functions before anything can redefine them
+// Get the real console.log functions before anything can redefine them *cough discord*
 let nativeLogFuncs = {
   log: console.log,
   warn: console.warn,
@@ -19,10 +20,10 @@ function writeStderr(content: string) {
   process.stderr.write(content);
 }
 
-let util;
+let util: typeof import("node:util");
 if (typeof process === "object") {
   environment = Enviromnent.Node;
-  util = require("util");
+  util = require("node:util");
 }
 
 type LogLevel = {
@@ -47,12 +48,11 @@ export class Logger {
       if (value instanceof Format) {
         // Don't add padding to the beginning of string, or immediately before another format
         if (index === 0 || args[index + 1] instanceof Format) {
-            strings.push(value.getTerminalEscape());
+          strings.push(value.getTerminalEscape());
         } else {
-            strings.push(RESET_FORMAT.getTerminalEscape());
-            strings.push(" ");
-            strings.push(value.getTerminalEscape());
-          
+          strings.push(RESET_FORMAT.getTerminalEscape());
+          strings.push(" ");
+          strings.push(value.getTerminalEscape());
         }
         continue;
       }
@@ -125,19 +125,21 @@ export class Logger {
   _logInternal(
     level: number,
     format: Array<Format | string>,
-    args: Array<any>
+    args: Array<any>,
+    noPrefix?: boolean
   ) {
     if (level < this.level) {
       return;
     }
 
-    const mergedFormats = [
-      ...format,
-      RESET_FORMAT,
-      ...this.prefix,
-      RESET_FORMAT,
-      ...args,
-    ];
+    const mergedFormats = [...format, RESET_FORMAT];
+
+    if (!noPrefix) {
+      mergedFormats.push(...this.prefix);
+      mergedFormats.push(RESET_FORMAT);
+    }
+
+    mergedFormats.push(...args);
 
     if (environment === Enviromnent.Node) {
       this._logToNodeTerminal(mergedFormats);
@@ -154,13 +156,40 @@ export class Logger {
     this.prefix = prefix;
   }
 
+  debug(...args: any[]) {
+    this._logInternal(
+      0,
+      [
+        new Format({
+          foreground: Colors.White,
+          background: Colors.Black,
+        }),
+        "debug",
+      ],
+      [...args]
+    );
+  }
+
+  verbose(...args: any[]) {
+    this._logInternal(
+      1000,
+      [
+        new Format({
+          foreground: Colors.Blue,
+          background: Colors.Black,
+        }),
+        "info",
+      ],
+      [...args]
+    );
+  }
+
   info(...args: any[]) {
     this._logInternal(
       3000,
       [
         new Format({
-          foregroundColor: new Color("#adda78", TerminalColors.Green),
-          backgroundColor: new Color("#403838", TerminalColors.Black),
+          foreground: Colors.Green,
         }),
         "info",
       ],
@@ -173,8 +202,9 @@ export class Logger {
       4000,
       [
         new Format({
-          foregroundColor: new Color("#403838", TerminalColors.Black),
-          backgroundColor: new Color("#f9cc6c", TerminalColors.Yellow),
+          foreground: Colors.Black,
+          background: Colors.Yellow,
+          bold: true,
         }),
         "WARN",
       ],
@@ -187,12 +217,17 @@ export class Logger {
       5000,
       [
         new Format({
-          foregroundColor: new Color("#fd6883", TerminalColors.Red),
-          backgroundColor: new Color("#403838", TerminalColors.Black),
+          foreground: Colors.Red,
+          background: Colors.Black,
+          bold: true,
         }),
         "ERR!",
       ],
       [...args]
     );
+  }
+
+  raw(...args: any[]) {
+    this._logInternal(Infinity, args, [], true);
   }
 }

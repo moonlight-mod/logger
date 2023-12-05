@@ -43,7 +43,7 @@ export class Color {
 
   getTerminalColor(background: boolean = false) {
     if (background) {
-        return this.terminalColor + TERMINAL_BACKGROUND_OFFSET
+      return this.terminalColor + TERMINAL_BACKGROUND_OFFSET;
     }
     return this.terminalColor + TERMINAL_FOREGROUND_OFFSET;
   }
@@ -54,11 +54,22 @@ export class Color {
   }
 }
 
+export const Colors = {
+  Black: new Color("#0c0c0c", TerminalColors.Black),
+  Blue: new Color("#0037da", TerminalColors.Blue),
+  Cyan: new Color("#3a96dd", TerminalColors.Cyan),
+  Green: new Color("#13a10e", TerminalColors.Green),
+  Magenta: new Color("#881798", TerminalColors.Magenta),
+  Red: new Color("#c50f1f", TerminalColors.Red),
+  Yellow: new Color("#c19c00", TerminalColors.Yellow),
+  White: new Color("#cccccc", TerminalColors.White),
+};
+
 const RESET_COLOR = new Color(null, TerminalColors.Reset);
 
 type FormatOptions = {
-  foregroundColor?: Color | null;
-  backgroundColor?: Color | null;
+  foreground?: Color | null;
+  background?: Color | null;
   bold?: boolean;
   italic?: boolean;
 };
@@ -67,24 +78,24 @@ export class Format {
   bold: boolean = false;
   italic: boolean = false;
 
-  foregroundColor: Color | null = null;
-  backgroundColor: Color | null = null;
+  foreground: Color | null = null;
+  background: Color | null = null;
 
   constructor(options?: FormatOptions) {
-    if (options?.foregroundColor)
-      this.foregroundColor = options.foregroundColor;
-    if (options?.backgroundColor)
-      this.backgroundColor = options.backgroundColor;
+    if (options?.foreground)
+      this.foreground = options.foreground;
+    if (options?.background)
+      this.background = options.background;
     if (options?.bold) this.bold = options.bold;
     if (options?.italic) this.italic = options.italic;
   }
 
   setBackground(color: Color) {
-    this.backgroundColor = color;
+    this.background = color;
   }
 
   setForeground(color: Color) {
-    this.backgroundColor = color;
+    this.background = color;
   }
 
   setBold(bold: boolean) {
@@ -94,8 +105,10 @@ export class Format {
   getTerminalEscape() {
     let modifiers: Array<number | string> = [0];
 
-    if (this.foregroundColor) modifiers.push(this.foregroundColor.getTerminalColor(false));
-    if (this.backgroundColor) modifiers.push(this.backgroundColor.getTerminalColor(true));
+    if (this.foreground)
+      modifiers.push(this.foreground.getTerminalColor(false));
+    if (this.background)
+      modifiers.push(this.background.getTerminalColor(true));
     if (this.bold) modifiers.push(TerminalCodes.Bold);
 
     return "\x1b[" + modifiers.join(";") + "m";
@@ -104,11 +117,11 @@ export class Format {
   getCssFormat() {
     let format = "";
 
-    if (this.foregroundColor) format += this.foregroundColor.getCssColor(false);
-    if (this.backgroundColor) format += this.backgroundColor.getCssColor(true);
+    if (this.foreground) format += this.foreground.getCssColor(false);
+    if (this.background) format += this.background.getCssColor(true);
 
     if (this.bold) format += "font-weight: 700;";
-    return format
+    return format;
   }
 }
 
